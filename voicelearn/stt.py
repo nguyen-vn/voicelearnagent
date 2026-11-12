@@ -1,4 +1,4 @@
-"""Speech-to-Text: chuyển file ghi âm thành văn bản bằng ElevenLabs Scribe."""
+"""Speech-to-Text: converts audio recordings to text using ElevenLabs Scribe."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -7,7 +7,7 @@ from .config import LANGUAGES
 
 
 class STTError(RuntimeError):
-    """Lỗi nhận diện giọng nói."""
+    """Speech recognition error."""
 
 
 class ElevenLabsSTT:
@@ -20,7 +20,7 @@ class ElevenLabsSTT:
         self.model = model
 
     def transcribe(self, audio_path: str | Path, language: str | None = "vi") -> str:
-        """language = 'vi' | 'en' | None (None = tự nhận diện ngôn ngữ)."""
+        """language = 'vi' | 'en' | None (None = auto-detect the language)."""
         audio_path = Path(audio_path)
         if not audio_path.exists():
             raise STTError(f"Không tìm thấy file âm thanh: {audio_path}")
@@ -31,7 +31,7 @@ class ElevenLabsSTT:
                     file=f,
                     model_id=self.model,
                     language_code=lang_code,
-                    tag_audio_events=False,  # không cần chú thích (tiếng cười...)
+                    tag_audio_events=False,  # no need for audio event tags (laughter...)
                 )
         except Exception as exc:  # noqa: BLE001
             raise STTError(f"ElevenLabs STT lỗi: {exc}") from exc
@@ -42,7 +42,7 @@ class ElevenLabsSTT:
 
 
 class MockSTT:
-    """Không gọi API: trả về câu hỏi mẫu để test luồng."""
+    """No API call: returns a sample question to test the flow."""
 
     SAMPLES = {
         "vi": "Quang hợp là gì và diễn ra ở đâu trong cây?",

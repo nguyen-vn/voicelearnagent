@@ -1,6 +1,6 @@
-"""System prompt của agent học tập.
+"""System prompts for the study agent.
 
-Prompt = phần chung (vai trò + quy tắc viết để ĐỌC THÀNH TIẾNG) + phần riêng theo chế độ.
+Prompt = shared part (role + rules for writing text to be READ ALOUD) + mode-specific part.
 """
 from __future__ import annotations
 
@@ -43,13 +43,13 @@ then ask the next question. Keep track of the score during the conversation.""",
 
 
 def build_system_prompt(mode: str = "qa", language: str = "vi", max_words: int = 180) -> str:
-    """Ghép system prompt hoàn chỉnh cho một chế độ + ngôn ngữ."""
+    """Assemble the full system prompt for a given mode + language."""
     lang_name = LANGUAGES.get(language, LANGUAGES["vi"])["name"]
     mode_part = MODE_PROMPTS.get(mode, MODE_PROMPTS["qa"])
     return BASE_PROMPT.format(language=lang_name, max_words=max_words) + "\n" + mode_part
 
 
-# Câu nhắc mặc định khi người dùng chỉ gửi file mà không hỏi gì
+# Default request used when the user only sends a file without asking anything
 DEFAULT_FILE_REQUEST = {
     "vi": {
         "qa": "Hãy giải thích nội dung chính trong tài liệu này.",

@@ -1,8 +1,8 @@
-"""Bộ não của agent: gọi Gemini (có thể bật Google Search) để trả lời câu hỏi / đọc file.
+"""The agent's brain: calls Gemini (optionally with Google Search) to answer questions / read files.
 
-Hai lớp có CÙNG giao diện `ask(...)`:
-- GeminiTutor : gọi API thật (google-genai SDK)
-- MockTutor   : trả lời giả lập, không cần API key (dùng khi học & test)
+Two classes share the SAME `ask(...)` interface:
+- GeminiTutor : calls the real API (google-genai SDK)
+- MockTutor   : returns simulated answers, no API key needed (for learning & testing)
 """
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from .documents import Attachment
 
 
 class LLMError(RuntimeError):
-    """Lỗi khi gọi LLM (sai key, hết quota, mạng...)."""
+    """Error when calling the LLM (wrong key, quota exceeded, network...)."""
 
 
 @dataclass
@@ -21,20 +21,20 @@ class LLMAnswer:
     sources: list[dict] = field(default_factory=list)  # [{"title": ..., "url": ...}]
 
 
-# history dùng chung định dạng "messages" của Gradio: [{"role": "user"|"assistant", "content": str}]
+# history uses Gradio's "messages" format: [{"role": "user"|"assistant", "content": str}]
 History = list[dict]
 
 
 class GeminiTutor:
     def __init__(self, api_key: str, model: str = "gemini-3.8-flash", client=None):
         if client is None:
-            from google import genai  # import muộn để mock mode không cần SDK
+            from google import genai  # lazy import so mock mode doesn't need the SDK
 
             client = genai.Client(api_key=api_key)
         self.client = client
         self.model = model
 
-    # ---------- xây dựng request ----------
+    # ---------- build the request ----------
     @staticmethod
     def build_contents(question: str, history: History | None, attachments: list[Attachment] | None):
         from google.genai import types
@@ -43,7 +43,7 @@ class GeminiTutor:
         for msg in history or []:
             text = msg.get("content")
             if not isinstance(text, str) or not text:
-                continue  # bỏ qua tin nhắn không phải text (audio, file...)
+                continue  # skip non-text messages (audio, files...)
             role = "model" if msg.get("role") == "assistant" else "user"
             contents.append(types.Content(role=role, parts=[types.Part.from_text(text=text)]))
 
@@ -61,7 +61,7 @@ class GeminiTutor:
 
     @staticmethod
     def extract_sources(response) -> list[dict]:
-        """Lấy danh sách nguồn web từ grounding metadata (khi bật Google Search)."""
+        """Extract the list of web sources from grounding metadata (when Google Search is enabled)."""
         sources, seen = [], set()
         try:
             chunks = response.candidates[0].grounding_metadata.grounding_chunks or []
@@ -75,7 +75,7 @@ class GeminiTutor:
                 sources.append({"title": getattr(web, "title", None) or url, "url": url})
         return sources
 
-    # ---------- gọi API ----------
+    # ---------- call the API ----------
     def ask(
         self,
         question: str,
@@ -91,7 +91,7 @@ class GeminiTutor:
                 contents=self.build_contents(question, history, attachments),
                 config=self.build_config(system_prompt, use_search),
             )
-        except Exception as exc:  # noqa: BLE001 - gom mọi lỗi SDK thành 1 loại
+        except Exception as exc:  # noqa: BLE001 - collapse all SDK errors into one type
             raise LLMError(f"Gemini lỗi: {exc}") from exc
         text = (response.text or "").strip()
         if not text:
@@ -100,10 +100,10 @@ class GeminiTutor:
 
 
 class MockTutor:
-    """Trả lời giả lập, giúp chạy thử toàn bộ pipeline mà không tốn API."""
+    """Simulated answers, for test-running the whole pipeline without spending API calls."""
 
     def __init__(self):
-        self.calls: list[dict] = []  # lưu lại request để test/kiểm tra
+        self.calls: list[dict] = []  # record requests for testing/inspection
 
     def ask(self, question, *, system_prompt, history=None, attachments=None, use_search=False) -> LLMAnswer:
         self.calls.append(

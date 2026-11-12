@@ -1,4 +1,4 @@
-"""Tiện ích xử lý văn bản: chuẩn hoá câu hỏi và làm sạch câu trả lời trước khi đọc (TTS)."""
+"""Text utilities: normalize questions and clean answers before they are read aloud (TTS)."""
 from __future__ import annotations
 
 import re
@@ -12,14 +12,14 @@ _SENTENCE_END = re.compile(r"(?<=[.!?…])\s+")
 
 
 def normalize_question(text: str | None) -> str:
-    """Bỏ khoảng trắng thừa; trả về chuỗi rỗng nếu None."""
+    """Collapse extra whitespace; return an empty string if None."""
     if not text:
         return ""
     return _SPACES.sub(" ", text.replace("\n", " ")).strip()
 
 
 def clean_for_speech(text: str) -> str:
-    """Loại bỏ ký hiệu markdown / URL để TTS không đọc 'dấu sao, thăng...'."""
+    """Strip markdown symbols / URLs so TTS doesn't read out 'asterisk, hash...'."""
     if not text:
         return ""
     text = _MD_LINK.sub(r"\1", text)
@@ -31,7 +31,7 @@ def clean_for_speech(text: str) -> str:
 
 
 def truncate_sentences(text: str, max_chars: int) -> str:
-    """Cắt văn bản ở ranh giới câu để không vượt quá max_chars (tiết kiệm credit TTS)."""
+    """Cut the text at a sentence boundary so it doesn't exceed max_chars (saves TTS credits)."""
     if len(text) <= max_chars:
         return text
     out = ""
@@ -43,5 +43,5 @@ def truncate_sentences(text: str, max_chars: int) -> str:
 
 
 def prepare_for_speech(text: str, max_chars: int = 1500) -> str:
-    """Pipeline làm sạch hoàn chỉnh: clean -> truncate."""
+    """Full cleaning pipeline: clean -> truncate."""
     return truncate_sentences(clean_for_speech(text), max_chars)

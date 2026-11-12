@@ -1,4 +1,4 @@
-"""VoiceLearn Agent – trợ lý học tập bằng giọng nói (STT → Gemini → TTS)."""
+"""VoiceLearn Agent – a voice-based study assistant (STT → Gemini → TTS)."""
 from .config import GENDERS, LANGUAGES, MODES, Settings
 from .pipeline import TurnResult, VoiceLearnAgent
 
