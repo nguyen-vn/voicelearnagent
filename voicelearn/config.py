@@ -1,4 +1,4 @@
-"""Cấu hình ứng dụng: đọc biến môi trường (.env) và các lựa chọn trên giao diện."""
+"""App configuration: reads environment variables (.env) and the options shown in the UI."""
 from __future__ import annotations
 
 import os
@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 ROOT_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(ROOT_DIR / ".env")
 
-# Ngôn ngữ hỗ trợ: key hiển thị trên UI -> mã dùng cho từng API
+# Supported languages: UI display key -> code used by each API
 LANGUAGES = {
     "vi": {"label": "Tiếng Việt", "stt": "vie", "tts": "vi", "name": "Vietnamese"},
     "en": {"label": "English", "stt": "eng", "tts": "en", "name": "English"},
@@ -18,7 +18,7 @@ LANGUAGES = {
 
 GENDERS = {"female": "Nữ / Female", "male": "Nam / Male"}
 
-# Chế độ học tập (mỗi chế độ = một system prompt khác nhau, xem prompts.py)
+# Study modes (each mode = a different system prompt, see prompts.py)
 MODES = {
     "qa": "Hỏi đáp & giải thích",
     "solve": "Giải bài tập (ảnh/PDF)",
@@ -47,8 +47,8 @@ class Settings:
     voice_vi_male: str = field(default_factory=lambda: _env("VOICE_VI_MALE_ID"))
 
     tts_max_chars: int = field(default_factory=lambda: int(_env("TTS_MAX_CHARS", "1500") or 1500))
-    history_turns: int = 6          # số lượt hội thoại gần nhất gửi lại cho LLM
-    max_file_mb: int = 20           # giới hạn dung lượng file gửi inline cho Gemini
+    history_turns: int = 6          # number of most recent conversation turns sent back to the LLM
+    max_file_mb: int = 20           # size limit for files sent inline to Gemini
     output_dir: Path = field(default_factory=lambda: ROOT_DIR / "outputs")
 
     @property
@@ -60,7 +60,7 @@ class Settings:
         return self.force_mock or not self.elevenlabs_api_key
 
     def voice_id(self, language: str, gender: str) -> str:
-        """Chọn voice ID theo (ngôn ngữ, giới tính). Ưu tiên giọng bản ngữ tiếng Việt nếu có."""
+        """Pick a voice ID by (language, gender). Prefers a native Vietnamese voice if one is set."""
         if language == "vi":
             native = self.voice_vi_female if gender == "female" else self.voice_vi_male
             if native:

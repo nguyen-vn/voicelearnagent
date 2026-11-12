@@ -1,4 +1,4 @@
-"""Text-to-Speech: đọc câu trả lời thành file âm thanh bằng ElevenLabs (giọng nam / nữ)."""
+"""Text-to-Speech: turns the answer into an audio file with ElevenLabs (male / female voice)."""
 from __future__ import annotations
 
 import math
@@ -11,7 +11,7 @@ from .config import LANGUAGES, Settings
 
 
 class TTSError(RuntimeError):
-    """Lỗi tổng hợp giọng nói."""
+    """Speech synthesis error."""
 
 
 class ElevenLabsTTS:
@@ -37,11 +37,11 @@ class ElevenLabsTTS:
             model_id=self.settings.tts_model,
             output_format="mp3_44100_128",
         )
-        # language_code giúp đọc đúng tiếng Việt (flash_v2_5 / v3 hỗ trợ)
+        # language_code helps pronounce Vietnamese correctly (supported by flash_v2_5 / v3)
         if language in LANGUAGES:
             kwargs["language_code"] = LANGUAGES[language]["tts"]
         try:
-            chunks = self.client.text_to_speech.convert(**kwargs)  # trả về iterator các đoạn bytes
+            chunks = self.client.text_to_speech.convert(**kwargs)  # returns an iterator of byte chunks
             audio = b"".join(chunks)
         except Exception as exc:  # noqa: BLE001
             raise TTSError(f"ElevenLabs TTS lỗi: {exc}") from exc
@@ -52,7 +52,7 @@ class ElevenLabsTTS:
 
 
 class MockTTS:
-    """Không gọi API: tạo file WAV 'bíp' ngắn (giọng nữ cao, nam trầm) để test luồng."""
+    """No API call: generates a short 'beep' WAV file (high pitch for female, low for male) to test the flow."""
 
     def __init__(self, settings: Settings | None = None):
         self.settings = settings or Settings()

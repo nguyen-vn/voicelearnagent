@@ -1,6 +1,6 @@
-"""Đọc file đính kèm (PDF / ảnh) thành bytes + mime type để gửi thẳng cho Gemini.
+"""Read attachments (PDF / image) into bytes + mime type to send directly to Gemini.
 
-Gemini đọc được PDF và ảnh trực tiếp (multimodal), nên không cần OCR hay tách trang.
+Gemini can read PDFs and images directly (multimodal), so no OCR or page splitting is needed.
 """
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ SUPPORTED_EXTENSIONS = list(MIME_TYPES)
 
 
 class AttachmentError(ValueError):
-    """File không hợp lệ (sai định dạng, quá lớn, không tồn tại)."""
+    """Invalid file (wrong format, too large, or does not exist)."""
 
 
 @dataclass
@@ -52,10 +52,10 @@ def load_attachment(path: str | Path, max_mb: int = 20) -> Attachment:
 
 
 def load_attachments(paths: list | None, max_mb: int = 20) -> list[Attachment]:
-    """Nhận list đường dẫn (hoặc object file của Gradio) -> list Attachment."""
+    """Take a list of paths (or Gradio file objects) -> list of Attachment."""
     result = []
     for p in paths or []:
         if not isinstance(p, (str, Path)):
-            p = getattr(p, "name", p)  # gradio cũ trả object file có thuộc tính .name
+            p = getattr(p, "name", p)  # older Gradio versions return file objects with a .name attribute
         result.append(load_attachment(p, max_mb=max_mb))
     return result

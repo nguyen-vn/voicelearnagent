@@ -1,8 +1,8 @@
-"""VoiceLearnAgent: ghép toàn bộ luồng
+"""VoiceLearnAgent: wires the whole flow together
 
-    Giọng nói ──STT──► Câu hỏi ─┐
-    File PDF/ảnh ───────────────┼──► Gemini (+ Google Search) ──► Câu trả lời ──TTS──► Âm thanh
-    Câu hỏi gõ phím ────────────┘
+    Voice ──STT──► Question ─┐
+    PDF/image file ──────────┼──► Gemini (+ Google Search) ──► Answer ──TTS──► Audio
+    Typed question ──────────┘
 """
 from __future__ import annotations
 
@@ -33,7 +33,7 @@ class TurnResult:
 
 
 def build_components(settings: Settings):
-    """Chọn provider thật hoặc mock tuỳ theo API key / MOCK_MODE."""
+    """Pick real or mock providers depending on the API keys / MOCK_MODE."""
     if settings.voice_mock:
         stt, tts = MockSTT(), MockTTS(settings)
     else:
@@ -68,17 +68,17 @@ class VoiceLearnAgent:
     ) -> TurnResult:
         result = TurnResult()
 
-        # 1) Speech-to-Text (nếu có ghi âm)
+        # 1) Speech-to-Text (if there is a recording)
         if audio_path:
             try:
                 result.transcript = self.stt.transcribe(audio_path, language)
             except STTError as exc:
                 result.errors.append(str(exc))
 
-        # 2) Ghép câu hỏi: phần gõ phím + phần nói
+        # 2) Build the question: typed part + spoken part
         question = " ".join(p for p in [normalize_question(text), normalize_question(result.transcript)] if p)
 
-        # 3) Đọc file đính kèm
+        # 3) Load attachments
         try:
             attachments = load_attachments(files, max_mb=self.settings.max_file_mb)
         except AttachmentError as exc:
@@ -93,7 +93,7 @@ class VoiceLearnAgent:
             return result
         result.question = question
 
-        # 4) LLM trả lời
+        # 4) LLM answers
         try:
             answer: LLMAnswer = self.tutor.ask(
                 question,
